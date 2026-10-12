@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Auto-Suggest Search Box</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 70px auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        h2 {
+            color: #23395d;
+        }
+
+        #searchBox {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #888;
+            border-radius: 5px;
+        }
+
+        #suggestions {
+            display: none;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            border: 1px solid #ccc;
+            background: white;
+        }
+
+        #suggestions li {
+            padding: 12px;
+            cursor: pointer;
+        }
+
+        #suggestions li:hover,
+        #suggestions li.active {
+            background: #e2edff;
+        }
+
+        #result {
+            margin-top: 20px;
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Auto-Suggest Search Box</h2>
+    <p>Type a keyword to see matching suggestions.</p>
+
+    <input
+        id="searchBox"
+        type="text"
+        placeholder="Type here..."
+        autocomplete="off"
+        aria-label="Search"
+    >
+
+    <ul id="suggestions"></ul>
+
+    <p id="result"></p>
+
+    <script>
+        const items = [
+            "Selenium",
+            "Selenium WebDriver",
+            "Selenium testing",
+            "Selenium tutorial",
+            "Java",
+            "Python"
+        ];
+
+        const input = document.getElementById("searchBox");
+        const list = document.getElementById("suggestions");
+        const result = document.getElementById("result");
+
+        let activeIndex = -1;
+
+        function closeSuggestions() {
+            list.style.display = "none";
+            list.innerHTML = "";
+            activeIndex = -1;
+        }
+
+        function selectSuggestion(value) {
+            input.value = value;
+            result.textContent = "Selected: " + value;
+            closeSuggestions();
+        }
+
+        input.addEventListener("input", function () {
+            const query = input.value.trim().toLowerCase();
+
+            list.innerHTML = "";
+            activeIndex = -1;
+            result.textContent = "";
+
+            if (query === "") {
+                closeSuggestions();
+                return;
+            }
+
+            const matches = items.filter(function (item) {
+                return item.toLowerCase().includes(query);
+            });
+
+            matches.forEach(function (item) {
+                const option = document.createElement("li");
+                option.textContent = item;
+
+                option.addEventListener("mousedown", function (event) {
+                    event.preventDefault();
+                    selectSuggestion(item);
+                });
+
+                list.appendChild(option);
+            });
+
+            list.style.display =
+                matches.length > 0 ? "block" : "none";
+        });
+
+        input.addEventListener("keydown", function (event) {
+            const options = Array.from(list.querySelectorAll("li"));
+
+            if (event.key === "ArrowDown" && options.length > 0) {
+                event.preventDefault();
+                activeIndex = (activeIndex + 1) % options.length;
+            } else if (event.key === "ArrowUp" && options.length > 0) {
+                event.preventDefault();
+                activeIndex =
+                    (activeIndex - 1 + options.length) % options.length;
+            } else if (event.key === "Enter" && activeIndex >= 0) {
+                event.preventDefault();
+                selectSuggestion(options[activeIndex].textContent);
+                return;
+            } else if (event.key === "Escape") {
+                closeSuggestions();
+                return;
+            } else {
+                return;
+            }
+
+            options.forEach(function (option, index) {
+                option.classList.toggle(
+                    "active",
+                    index === activeIndex
+                );
+            });
+        });
+
+        document.addEventListener("click", function (event) {
+            if (
+                event.target !== input &&
+                !list.contains(event.target)
+            ) {
+                closeSuggestions();
+            }
+        });
+    </script>
+</body>
+</html>
